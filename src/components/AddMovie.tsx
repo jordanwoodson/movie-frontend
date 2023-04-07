@@ -1,40 +1,41 @@
-// src/components/AddMovie.tsx
 import axios from "axios";
 import React, { useState } from "react";
 
-const AddMovie = () => {
-  const [name, setName] = useState("");
-  const [author, setAuthor] = useState("");
-  const [message, setMessage] = useState("");
+interface AddMovieProps {
+  onSubmit: () => void;
+}
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+const initialMovieState = {
+  name: "",
+  author: "",
+};
+
+const AddMovie: React.FC<AddMovieProps> = ({ onSubmit }) => {
+  const [movie, setMovie] = useState(initialMovieState);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     try {
-      const response = await axios.post("http://localhost:3001/movies", {
-        name,
-        author,
-      });
-      console.log(response.data);
-      setName("");
-      setAuthor("");
-      setMessage("Movie successfully added to the database!");
-    } catch (error: any) {
-      console.error("Error while adding movie:", error.response.data);
-      setMessage(`Error: ${error.response.data.message}`);
+      await axios.post(`${process.env.REACT_APP_API_URL}/movies`, movie);
+      alert("Movie added successfully");
+      setMovie(initialMovieState);
+      onSubmit(); // Call the onSubmit prop when the movie is added successfully
+    } catch (error) {
+      console.error(`Error while adding movie: ${error}`);
+      alert("Error while adding movie. Please try again.");
     }
   };
 
   return (
     <div>
-      <h2>Add Movie</h2>
+      <h2>Add Movie To Tracker</h2>
       <form onSubmit={handleSubmit}>
         <label>
           Name:
           <input
             type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
+            value={movie.name}
+            onChange={(e) => setMovie({ ...movie, name: e.target.value })}
             required
           />
         </label>
@@ -43,15 +44,14 @@ const AddMovie = () => {
           Author:
           <input
             type="text"
-            value={author}
-            onChange={(e) => setAuthor(e.target.value)}
+            value={movie.author}
+            onChange={(e) => setMovie({ ...movie, author: e.target.value })}
             required
           />
         </label>
         <br />
         <button type="submit">Add Movie</button>
       </form>
-      {message && <p>{message}</p>}
     </div>
   );
 };
